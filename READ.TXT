@@ -1,0 +1,7 @@
+npx create-react-app APPNAME
+
+install reactrouter and style-component
+
+import styled from 'styled-component'
+
+browser
