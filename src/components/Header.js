@@ -1,11 +1,12 @@
 import styled from 'styled-components';
 import {auth, provider} from '../firebaseApp';
-import {signInWithPopup} from 'firebase/auth'
+import {signInWithPopup,onAuthStateChanged,signOut} from 'firebase/auth'
 
 import {useDispatch, useSelector} from 'react-redux'
-// import {unstable_HistoryRouter} from 'react-router-dom'
+// import {History} from 'react-router-dom'
 
-import {selectUserName,selectUserPhoto,setUserLoginDetails} from '../features/user/userSlice';
+import {selectUserName,selectUserPhoto,setSignOutState,setUserLoginDetails} from '../features/user/userSlice';
+import { useEffect } from 'react';
 
 function Header() {
 
@@ -14,21 +15,39 @@ function Header() {
     const userPhoto =useSelector(selectUserPhoto);
     // const email = useSelector(selectUserEmail);
 
-    // const history = unstable_HistoryRouter();
+    // const history = History();
+
+    // useEffect(()=>{
+    //   onAuthStateChanged( async (user)=>{
+    //     if(user){
+    //       setUser(user);
+    //       history.push('/home');
+    //     }
+    //   });
+    // },[userName]);
 
 
     // login
     const handleAuth=()=>{
-        signInWithPopup(auth,provider)
-        .then((result) => {
-            console.log(result);
-            setUser(result.user); //dispatch t0 store;
-        })
-        .catch((error) => {
-            alert(error.message);
-        });
+        if(!userName){
+          signInWithPopup(auth,provider)
+          .then((result) => {
+              console.log(result.user.photoURL);
+              setUser(result.user); //dispatch t0 store;
+          })
+          .catch((error) => {
+              alert(error.message);
+          });
+        }
+        else if (userName){
+            signOut(auth)
+              .then(()=>{
+              dispatch(setSignOutState());
+              // history.push('/');
+            })
+              .catch((err)=>console.log(err));
+        }
           
-
     };
 
     const setUser = ( user )=>{
@@ -80,7 +99,12 @@ function Header() {
                                 </a>
                     
                             </NavMenu>
-                            <UserImg src={userPhoto} alt={userName} />
+                            <SignOut>
+                              <UserImg src={userPhoto} alt={userName} />
+                              <DropDown>
+                                <span onClick={handleAuth} >Sign out</span>
+                              </DropDown>
+                            </SignOut>
                
                       </>
               }
@@ -92,8 +116,47 @@ function Header() {
 }
 
 const UserImg = styled.img`
-  height:100%
-`
+  height:100%;
+  
+  `
+ const DropDown = styled.div`
+  position:absolute;
+  top:48px;
+  right:0px;
+  background : rgb(19,19,19);
+  color:white;
+  box-shadow:rgba(0 0 0 /50%) 0px 0px 18px 0px;
+  border-radius:4px;
+  padding:12px;
+  font-size:14px;
+  letter-spacing:0.2px;
+  
+  width:100px;
+  opacity:0;
+  
+`;
+
+const SignOut = styled.div`
+  position:relative;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  height:48px;width:48px;
+  cursor:pointer;
+
+  ${UserImg}{
+    border-radius:50%;
+    width:100%;height:100%;
+  };
+  &:hover{
+    ${DropDown}{
+      opacity:1;
+      transition-delay:0.5s;
+    }
+  }
+
+`;
+
 
 
 const Nav = styled.nav`
@@ -186,9 +249,9 @@ const NavMenu = styled.div`
     }
   }
 
-  /* @media (max-width: 768px) {
+  @media (max-width: 768px) {
     display: none;
-  } */
+  } 
 `;
 
 const Login = styled.a`
@@ -199,7 +262,7 @@ const Login = styled.a`
   border: 1px solid #f9f9f9;
   border-radius: 4px;
   transition: all 0.2s ease 0s;
-
+  cursor:pointer;
   &:hover {
     background-color: #f9f9f9;
     color: #000;

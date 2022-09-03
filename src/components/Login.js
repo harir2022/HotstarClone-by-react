@@ -78,7 +78,7 @@ const SignUp = styled.a`
     padding:16.5px 0px;
     border:1px solid transparent;
     border-radius:4px;
-    
+    cursor:pointer;
     &:hover {
         background-color:red;
 }
